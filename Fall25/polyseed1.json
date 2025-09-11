@@ -1,0 +1,16 @@
+{
+	"name": "polyseed1",
+	"som": "seed",
+	"components": {
+		"knob": {
+			"component": "AnalogControl",
+			"pin": 15
+		},
+		"button": {
+			"component": "AnalogControl",
+			"pin": 16
+		}
+		
+		
+	}
+}
