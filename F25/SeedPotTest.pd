@@ -1,8 +1,0 @@
-#N canvas 827 239 527 327 12;
-#X obj 674 436 osc~;
-#X obj 674 218 r pot @hv_param;
-#X obj 678 273 vsl 17 128 50 1000 0 0 empty empty empty 0 -9 0 10 #e4e4e4 #4d4d4d #373737 0 1;
-#X obj 674 470 dac~ 18;
-#X connect 0 0 3 0;
-#X connect 1 0 2 0;
-#X connect 2 0 0 0;
