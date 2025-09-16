@@ -1,0 +1,10 @@
+{
+	"name": "seedButtonTest",
+	"som": "seed",
+    "components":{
+		"pot": {
+			"component": "AnalogControl",
+			"pin": 16
+		}
+	}
+}
