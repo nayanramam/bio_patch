@@ -1,5 +1,6 @@
 import os
 import subprocess
+# how to run: python main.py teensy_vip.ino --teensy-loader-cli teensy_loader_cli.exe
 
 class TeensyUploader:
     def __init__(self, teensy_loader_cli_path):
@@ -11,6 +12,7 @@ class TeensyUploader:
         """
         Compiles the .ino file using Arduino CLI.
         """
+        print(ino_file_path)
         try:
             print("Compiling the sketch for Teensy 4.1...")
             result = subprocess.run(
