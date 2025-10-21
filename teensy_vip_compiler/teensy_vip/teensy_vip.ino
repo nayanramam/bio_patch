@@ -11,6 +11,7 @@
 #include <Arduino.h>
 #include <Audio.h>
 #include <math.h>
+#include "KickDrum.h"
 
 // ---------------- Controls -------------------
 const int BTN_PLAY = 24;   // Kick
@@ -19,10 +20,14 @@ const int POT_A = A0;      // Attack
 const int POT_D = A1;      // Decay
 
 // ---------------- Audio Graph ----------------
+// kick: now encapsulated!
+KickDrum kick;
+
+
 // Kick: sine -> env
-AudioSynthWaveform   kickOsc;
-AudioEffectEnvelope  kickEnv;
-AudioConnection      kc1(kickOsc, 0, kickEnv, 0);
+// AudioSynthWaveform   kickOsc;
+// AudioEffectEnvelope  kickEnv;
+// AudioConnection      kc1(kickOsc, 0, kickEnv, 0);
 
 // Snare: white noise -> bandpass -> env
 AudioSynthNoiseWhite snareNoise;
@@ -46,7 +51,7 @@ struct Params {
   float decayMs;
 };
 
-Params kickParams = { 5.0f, 150.0f };
+// Params kickParams = { 5.0f, 150.0f };
 Params snareParams = { 5.0f, 200.0f };
 
 // Kick pitch sweep
@@ -68,22 +73,22 @@ float mapDecay (uint16_t raw) { return fmap(raw, 0, 4095, 20.0f, 600.0f); }
 // ---------------- Envelope apply -------------
 void applyEnvelopeParams(float attackMs, float decayMs) {
   const float relMs = 8.0f;
-  kickEnv.attack(attackMs);  kickEnv.decay(decayMs);  kickEnv.sustain(0.0f);  kickEnv.release(relMs);
+  // kickEnv.attack(attackMs);  kickEnv.decay(decayMs);  kickEnv.sustain(0.0f);  kickEnv.release(relMs);
   snareEnv.attack(attackMs); snareEnv.decay(decayMs); snareEnv.sustain(0.0f); snareEnv.release(relMs);
 }
 
 // ---------------- Trigger -------------------
-void triggerKick() {
-  applyEnvelopeParams(kickParams.attackMs, kickParams.decayMs);
-  kickFStart = 120.0f;
-  kickFEnd   = 45.0f;
-  kickOsc.begin(WAVEFORM_SINE);
-  kickOsc.amplitude(1.0f);
-  kickOsc.frequency(kickFStart);
-  kickSweepActive = true;
-  kickSweepStartUs = micros();
-  kickEnv.noteOn();
-}
+// void triggerKick() {
+//   applyEnvelopeParams(kickParams.attackMs, kickParams.decayMs);
+//   kickFStart = 120.0f;
+//   kickFEnd   = 45.0f;
+//   kickOsc.begin(WAVEFORM_SINE);
+//   kickOsc.amplitude(1.0f);
+//   kickOsc.frequency(kickFStart);
+//   kickSweepActive = true;
+//   kickSweepStartUs = micros();
+//   kickEnv.noteOn();
+// }
 
 void triggerSnare() {
   applyEnvelopeParams(snareParams.attackMs, snareParams.decayMs);
@@ -94,18 +99,18 @@ void triggerSnare() {
 }
 
 // ---------------- Kick sweep update ----------
-void updateKickSweep() {
-  if (!kickSweepActive) return;
-  uint32_t t = micros() - kickSweepStartUs;
-  if (t >= KICK_SWEEP_DUR_US) {
-    kickOsc.frequency(kickFEnd);
-    kickSweepActive = false;
-  } else {
-    float u = (float)t / (float)KICK_SWEEP_DUR_US;
-    float f = kickFStart + (kickFEnd - kickFStart) * (u * u);
-    kickOsc.frequency(f);
-  }
-}
+// void updateKickSweep() {
+//   if (!kickSweepActive) return;
+//   uint32_t t = micros() - kickSweepStartUs;
+//   if (t >= KICK_SWEEP_DUR_US) {
+//     kickOsc.frequency(kickFEnd);
+//     kickSweepActive = false;
+//   } else {
+//     float u = (float)t / (float)KICK_SWEEP_DUR_US;
+//     float f = kickFStart + (kickFEnd - kickFStart) * (u * u);
+//     kickOsc.frequency(f);
+//   }
+// }
 
 // ---------------- Setup ----------------------
 void setup() {
@@ -119,8 +124,8 @@ void setup() {
   mix.gain(0, 0.9f);
   mix.gain(1, 0.8f);
 
-  kickOsc.begin(WAVEFORM_SINE);
-  kickOsc.amplitude(1.0f);
+  // kickOsc.begin(WAVEFORM_SINE);
+  // kickOsc.amplitude(1.0f);
   snareNoise.amplitude(0.9f);
 
   Serial.println("Drum Test Ready: Press BTN_PLAY=Kick, BTN_TYPE=Snare");
@@ -129,10 +134,12 @@ void setup() {
 // ---------------- Loop -----------------------
 void loop() {
   // Update params from pots
-  kickParams.attackMs = mapAttack(analogRead(POT_A));
-  kickParams.decayMs  = mapDecay (analogRead(POT_D));
+  float currentAttack = mapAttack(analogRead(POT_A));
+  float currentDecay  = mapDecay (analogRead(POT_D));
   snareParams.attackMs = kickParams.attackMs;
   snareParams.decayMs  = kickParams.decayMs;
+
+  kick.setParams(currentAttack, currentDecay); // <-- SET PARAMS ON THE OBJECT
 
   // Button press detection (active LOW)
   static bool lastKick = HIGH, lastSnare = HIGH;
@@ -140,7 +147,7 @@ void loop() {
   bool snareNow = digitalRead(BTN_TYPE);
 
   if (lastKick == HIGH && kickNow == LOW) {
-    triggerKick();
+    kick.trigger();
     Serial.println("Kick!");
   }
   if (lastSnare == HIGH && snareNow == LOW) {
@@ -152,5 +159,5 @@ void loop() {
   lastSnare = snareNow;
 
   // Update kick sweep
-  updateKickSweep();
+  kick.update();
 }
