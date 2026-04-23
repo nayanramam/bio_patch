@@ -1,6 +1,0 @@
-************************************* Invoked: Tue Sep 30 12:13:15 2025
-[0] Arguments: D:\VSCode\GaTech\VIP_Music\teensy_vip\msys2-x86_64-20250830.exe
-[3] Operations sanity check succeeded.
-[3] Warning: Cannot create lock file "C:\Users\AYW\AppData\Local\Temp\msys2-x86_64-202508301234865.lock": The process cannot access the file because it is being used by another process.
- (0x00000020)
-[16] UnableToStart : Unable to start installer : Another msys2-x86_64-20250830 instance is already running. Wait until it finishes, close it, or restart your system.
